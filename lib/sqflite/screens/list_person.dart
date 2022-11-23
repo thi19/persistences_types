@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:persistences_types/sqflite/daos/person_dao.dart';
+import 'package:persistences_types/sqflite/models/person.dart';
 import 'package:persistences_types/sqflite/screens/add_person.dart';
 import 'package:persistences_types/utils/customStyles.dart';
 import 'package:persistences_types/utils/customWidgets.dart';
@@ -14,9 +16,25 @@ class _ListPersonWidgetState extends State<ListPersonWidget> {
   final title = const Text("Pessoas");
   final addRoute = const AddPersonWidget();
 
-  List persons = [
-    {}
-  ];
+  List<Person> persons = [];
+
+  @override
+  void initState(){
+    super.initState();
+    getAllPersons();
+  }
+
+  getAllPersons() async{
+    List<Person> result = await PersonDAO().readAll();
+    setState(() {
+      persons = result;
+    });
+  }
+
+  deletePersonById(int id) async{
+    await PersonDAO().deletePerson(id);
+    getAllPersons();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +43,8 @@ class _ListPersonWidgetState extends State<ListPersonWidget> {
         IconButton(
             onPressed: () {
               Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => addRoute));
+                  context, MaterialPageRoute(builder: (context) => addRoute))
+                  .then((person) => getAllPersons());
             },
             icon: addIcon)
       ]),
@@ -37,16 +56,17 @@ class _ListPersonWidgetState extends State<ListPersonWidget> {
   }
 
   Widget _buildItem(int index) {
+    Person person = persons[index];
     return Padding(
       padding: cardPadding,
       child: Container(
           decoration: cardBoxStyle(),
           child: ListTile(
-            leading: Text("1"),
-            title: Text("Pessoa 1"),
-            subtitle: Text("Sobrenome 1"),
+            leading: Text(person.id.toString()),
+            title: Text(person.firstName),
+            subtitle: Text(person.lastName),
             onLongPress: () {
-              //delete
+              deletePersonById(person.id!);
             },
           )),
     );
