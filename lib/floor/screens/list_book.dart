@@ -21,24 +21,30 @@ class _ListBookWidgetState extends State<ListBookWidget> {
   List<Book> books = [];
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     getAllBooks();
   }
 
   getAllBooks() async {
     final database = await $FloorAppDatabase
-      .databaseBuilder("book_floor_database.db")
-      .build();
+        .databaseBuilder("book_floor_database.db")
+        .build();
 
     dao = database.bookDAO;
-    if(dao != null){
+
+    if (dao != null) {
       final result = await dao!.findAll();
-      if(result.isNotEmpty){
-        setState(() {
-          books = result;
-        });
-      }
+      setState(() {
+        books = result;
+      });
+    }
+  }
+
+  deleteBook(Book book) async {
+    if (dao != null) {
+      await dao!.deleteBook(book);
+      getAllBooks();
     }
   }
 
@@ -48,8 +54,9 @@ class _ListBookWidgetState extends State<ListBookWidget> {
       appBar: AppBar(title: title, actions: [
         IconButton(
             onPressed: () {
-              Navigator.push(
-                  context, MaterialPageRoute(builder: (context) => addRoute));
+              Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => addRoute))
+                  .then((value) => getAllBooks());
             },
             icon: addIcon)
       ]),
@@ -71,7 +78,7 @@ class _ListBookWidgetState extends State<ListBookWidget> {
             title: Text(book.name),
             subtitle: Text(book.description),
             onLongPress: () {
-              //delete
+              deleteBook(book);
             },
           )),
     );

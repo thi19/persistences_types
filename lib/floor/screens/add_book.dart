@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:persistences_types/components/input_form.dart';
+import 'package:persistences_types/floor/database/appDatabase.dart';
+import 'package:persistences_types/floor/models/book.dart';
 import 'package:persistences_types/utils/customStyles.dart';
 import 'package:persistences_types/utils/customWidgets.dart';
 
@@ -14,6 +16,14 @@ class _AddBookWidgetState extends State<AddBookWidget> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
+
+  insertBook(Book book) async {
+    final database = await $FloorAppDatabase
+        .databaseBuilder("book_floor_database.db")
+        .build();
+
+    await database.bookDAO.insertBook(book);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +51,9 @@ class _AddBookWidgetState extends State<AddBookWidget> {
                           child: ElevatedButton(
                               onPressed: (() {
                                 if (_formKey.currentState!.validate()) {
+                                  final book = Book(_nameController.text,
+                                      _descriptionController.text);
+                                  insertBook(book);
                                   Navigator.pop(context);
                                 }
                               }),
