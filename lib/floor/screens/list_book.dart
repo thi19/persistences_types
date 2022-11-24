@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:persistences_types/floor/daos/book_dao.dart';
+import 'package:persistences_types/floor/database/appDatabase.dart';
+import 'package:persistences_types/floor/models/book.dart';
 import 'package:persistences_types/floor/screens/add_book.dart';
 import 'package:persistences_types/utils/customStyles.dart';
 import 'package:persistences_types/utils/customWidgets.dart';
@@ -14,9 +17,30 @@ class _ListBookWidgetState extends State<ListBookWidget> {
   final title = const Text("Livros");
   final addRoute = const AddBookWidget();
 
-  List books = [
-    {}
-  ];
+  BookDAO? dao;
+  List<Book> books = [];
+
+  @override
+  void initState(){
+    super.initState();
+    getAllBooks();
+  }
+
+  getAllBooks() async {
+    final database = await $FloorAppDatabase
+      .databaseBuilder("book_floor_database.db")
+      .build();
+
+    dao = database.bookDAO;
+    if(dao != null){
+      final result = await dao!.findAll();
+      if(result.isNotEmpty){
+        setState(() {
+          books = result;
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,14 +61,15 @@ class _ListBookWidgetState extends State<ListBookWidget> {
   }
 
   Widget _buildItem(int index) {
+    Book book = books[index];
     return Padding(
       padding: cardPadding,
       child: Container(
           decoration: cardBoxStyle(),
           child: ListTile(
-            leading: Text("1"),
-            title: Text("Livro 1"),
-            subtitle: Text("Descrição 1"),
+            leading: Text(book.id.toString()),
+            title: Text(book.name),
+            subtitle: Text(book.description),
             onLongPress: () {
               //delete
             },
